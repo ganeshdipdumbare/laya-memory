@@ -1,0 +1,9 @@
+interface:
+  display_name: "laya-memory"
+  short_description: "Durable memory gated by a local classifier — recall before guessing, capture after learning something non-obvious."
+
+policy:
+  # SKILL.md's description is written for the model to pick this up on its own
+  # (a stuck moment, a "we hit this before", a solved gotcha worth keeping) —
+  # implicit invocation is the intended usage, not a fallback.
+  allow_implicit_invocation: true

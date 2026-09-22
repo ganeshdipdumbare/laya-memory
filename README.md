@@ -99,11 +99,10 @@ laya-memory's cost none).
 
 Worth being honest about the other direction too: of the 8 real gotchas laya-memory's gate
 turned away, most were blocked on a single axis — `durable`, the tightest of the three
-capture thresholds by default — and lowering it recovered several with no new false
-positives on the trivial set. If recall feels too conservative for your use, that's the
-first knob to try; see the tuning table in
-[`references/design.md`](references/design.md). This is a one-run, 35-case benchmark —
-directional, not a large-scale study.
+capture thresholds. Lowering it from 0.55 to 0.40 recovered several of them with no new
+false positives on the trivial set, so that's now the shipped default (see the tuning
+table in [`references/design.md`](references/design.md) if you want to move it further).
+This is a one-run, 35-case benchmark — directional, not a large-scale study.
 
 ## Quick start
 
@@ -175,6 +174,8 @@ everything is just a slower, worse `grep`.
 
 ```
 SKILL.md              the contract the agent reads: when to use this, how
+agents/
+  openai.yaml           Codex-specific: display metadata, implicit-invocation policy
 scripts/
   recall.py            entry point: query the library
   capture.py           entry point: write to the library
@@ -183,6 +184,8 @@ scripts/
   reindex.py            rebuild index.json from entries/ on disk
 references/
   design.md            storage format, what was and wasn't taken from Agora, tuning
+tests/
+  test_store.py         unit tests for the pure logic in store.py
 ```
 
 `entries/` and `index.json` are **not** in this repo — they live in `~/.claude/laya-memory/`
@@ -197,6 +200,16 @@ is only the skill definition: the code and the contract, not the accumulated not
 - [laya](https://github.com/ganeshdipdumbare/laya) running locally. Both scripts degrade
   gracefully if it's unreachable — recall falls back to keyword matching, capture stores
   unclassified — and say so plainly when they do.
+
+## Running the tests
+
+`tests/test_store.py` covers `store.py`'s pure logic — slugify/tokenize, the content-
+addressed dedup, the DAG edge derivation (supersede/verify/refute), and the lexical
+prefilter — against a throwaway library, never your real one. No laya server needed:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
 
 ## License
 

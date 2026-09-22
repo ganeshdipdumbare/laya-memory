@@ -19,7 +19,7 @@ import store
 # Thresholds. Gate on the probability of the answer, never on `confidence`.
 NOVEL = float(__import__("os").environ.get("LAYA_MEM_NOVEL", "0.60"))
 REUSABLE = float(__import__("os").environ.get("LAYA_MEM_REUSABLE", "0.60"))
-DURABLE = float(__import__("os").environ.get("LAYA_MEM_DURABLE", "0.55"))
+DURABLE = float(__import__("os").environ.get("LAYA_MEM_DURABLE", "0.40"))
 
 # Instructions + all criteria must fit 192 tokens PER QUESTION. Overrun is a hard 422.
 QUESTIONS = {

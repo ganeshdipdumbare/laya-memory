@@ -118,7 +118,13 @@ about the entries or the git layout has to move.
 | `LAYA_MEMORY_HOME` | `~/.claude/laya-memory` | library location |
 | `LAYA_SKILLS_MODEL` | unset | set to `auto` if you loaded `english,multilingual` |
 | `LAYA_MEM_APPLIES` | 0.70 | recall relevance threshold |
-| `LAYA_MEM_NOVEL` / `_REUSABLE` / `_DURABLE` | 0.60 / 0.60 / 0.55 | capture gate |
+| `LAYA_MEM_NOVEL` / `_REUSABLE` / `_DURABLE` | 0.60 / 0.60 / 0.40 | capture gate |
 
 Raise the capture thresholds if the library fills with obvious notes; lower
 `LAYA_MEM_APPLIES` if you keep missing things you know are stored.
+
+`_DURABLE` was lowered from its original 0.55 after a 35-case benchmark showed it was the
+single tightest of the three gates — most of the real gotchas the gate wrongly rejected
+were blocked on durability alone, with strong novel/reusable scores, and 0.40 recovered
+several of them with no new false positives on the benchmark's trivial-item set. See the
+[README's benchmark section](../README.md#benchmark-vs-mem0) for the numbers.
