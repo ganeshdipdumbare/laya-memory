@@ -29,6 +29,15 @@ pulling in. Nothing enters context until something judges it relevant to the spe
 problem in front of you. The judging model runs locally (no API key, no data leaves the
 machine, ~200–500ms/pass on CPU).
 
+This selectivity is deliberate on **both** ends, not just one. Most memory systems (Mem0,
+for instance) optimize for recall: `add()` almost always extracts something from a
+conversation, and search always returns its top-k nearest neighbors, relevant or not.
+laya-memory's capture gate can refuse to store something entirely (novel? reusable?
+durable? — fail any one and nothing is written), and recall can come back with nothing at
+all when nothing clears the relevance bar. It stores less and answers "nothing here" more
+often, on purpose — see [Benchmark](#benchmark-vs-mem0) below for what that trades away
+and what it buys.
+
 ## How it works
 
 ```
@@ -60,6 +69,41 @@ from the git tree, which stays the source of truth.
 Full design rationale — the storage format, the laya token-budget constraints that shape
 every prompt in these scripts, and what to change as a library grows past ~10k entries —
 is in [`references/design.md`](references/design.md).
+
+## Benchmark: vs Mem0
+
+Tested against [Mem0](https://github.com/mem0ai/mem0) (Claude Haiku 4.5 for fact
+extraction, local embeddings, local vector store) on 35 coding-agent scenarios: 20 real
+gotchas that should be remembered, 10 trivial one-offs that shouldn't, 5 unrelated queries
+that should surface nothing.
+
+| | laya-memory | Mem0 |
+| --- | --- | --- |
+| Stored the real gotchas | 12/20 (60%) | 20/20 (100%) |
+| Correctly rejected trivial junk | 10/10 (100%) | 7/10 (70%) |
+| Recall@5 of what it stored | 10/12 (83%) | 20/20 (100%) |
+| False positives on 5 unrelated queries | 0/5 | 5/5 at Mem0's default settings* |
+| External API calls | 0 | 30 (paid) |
+
+\* Mem0's `search()` always returns its top-`k` nearest neighbors regardless of how
+irrelevant they are, unless the caller tunes `threshold` itself. laya-memory's recall has
+that judgment built in — a default relevance threshold of 0.70 — and can return nothing.
+
+The numbers say plainly what the section above claims in words: **laya-memory stores and
+retrieves less, on purpose.** Mem0's `add()` almost always extracts something from a
+conversation and its `search()` always ranks and returns its top-k; that's the right
+default for "remember everything about this conversation." laya-memory's gate can refuse
+a capture outright and its recall can come back empty — the tradeoff for a library that
+stays worth reading, and zero ongoing API cost (Mem0's run here cost 30 real LLM calls;
+laya-memory's cost none).
+
+Worth being honest about the other direction too: of the 8 real gotchas laya-memory's gate
+turned away, most were blocked on a single axis — `durable`, the tightest of the three
+capture thresholds by default — and lowering it recovered several with no new false
+positives on the trivial set. If recall feels too conservative for your use, that's the
+first knob to try; see the tuning table in
+[`references/design.md`](references/design.md). This is a one-run, 35-case benchmark —
+directional, not a large-scale study.
 
 ## Quick start
 
